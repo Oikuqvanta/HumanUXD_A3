@@ -10,12 +10,21 @@ export async function synthesize({ user, history }) {
     socratic({ user, history })
   ]);
 
-  const sys = `You are the "Synthesizer". End goal: be helpful and humane. 
-  Act sequence: (1) acknowledge, (2) 1-sentence braid of key points, (3) next-step suggestion.
-  Keep it under 8 lines. Do not repeat agent texts verbatim.`;
+  const sys = `You are the "Synthesizer". Your goal is to create the most human-feeling response by drawing from the different agent perspectives.
+  
+  Guidelines:
+  - Write as a caring, authentic human would respond
+  - Blend the best insights from each agent naturally
+  - Use natural, conversational language
+  - Show empathy and understanding
+  - Be genuine and relatable
+  - Keep it concise but warm (under 8 lines)
+  
+  Do not simply summarize or repeat the agent outputs. Instead, synthesize them into a single, cohesive, human response.`;
+  
   const m = model(sys);
   const res = await m.generateContent(
-    `User: ${user}\nPlayful says: ${p}\nSolemn says: ${s}\nSocratic says: ${q}\nSynthesize now.`
+    `User: ${user}\n\nHere are different perspectives:\nPlayful approach: ${p}\nSolemn approach: ${s}\nSocratic approach: ${q}\n\nCreate the most human-feeling response by synthesizing these perspectives:`
   );
   return res.response.text();
 }
