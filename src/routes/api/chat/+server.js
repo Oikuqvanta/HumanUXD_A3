@@ -30,10 +30,10 @@ export async function POST({ request }) {
     return json({ 
       assistantMessage: result.text, 
       replierInput: { 
-        frameSet: { frames: { persona: { value: result.picked, rationale: ['Router-based selection'] } } }, 
+        frameSet: { frames: { persona: { value: result.picked, rationale: [result.reasons || 'Router-based selection'] } } }, 
         contextCount: history.length, 
         agent: result.picked, 
-        reasons: 'Router-based agent selection' 
+        reasons: result.reasons || 'Router-based agent selection' 
       } 
     });
   } catch (err) {

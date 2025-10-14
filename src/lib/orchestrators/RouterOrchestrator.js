@@ -15,7 +15,10 @@ export async function route({ user, history }) {
   const byRule = ruleRoute(user);
   if (byRule) {
     const map = { playful, solemn, socratic: socratic };
-    return { picked: byRule, text: await map[byRule]({ user, history }) };
+    const reasons = byRule === 'socratic' ? 'User asked a question (rule-based)' :
+                   byRule === 'playful' ? 'User used casual/humorous language (rule-based)' :
+                   'User mentioned serious topics (rule-based)';
+    return { picked: byRule, text: await map[byRule]({ user, history }), reasons };
   }
 
   // LLM triage if rules don't catch
@@ -28,5 +31,6 @@ export async function route({ user, history }) {
       ? "socratic" : "playful";
 
   const map = { playful, solemn, socratic };
-  return { picked: label, text: await map[label]({ user, history }) };
+  const reasons = `LLM classified as ${label}`;
+  return { picked: label, text: await map[label]({ user, history }), reasons };
 }
