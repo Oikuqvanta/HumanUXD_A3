@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { Orchestrator } from '$lib/orchestrators/ExampleJoySadOrchestrator.js';
+import { route } from '$lib/orchestrators/RouterOrchestrator.js';
 
 /**
  * Handle chat POST requests for a single-turn pipeline execution.
@@ -16,12 +16,26 @@ export async function POST({ request }) {
   }
 
   try {
-    const orchestrator = new Orchestrator();
-    const contents = history.map((m) => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.content }] }));
+    // Get the latest user message
+    const latestMessage = history[history.length - 1];
+    if (!latestMessage || latestMessage.role !== 'user') {
+      return json({ error: 'No user message found' }, { status: 400 });
+    }
+
+    const userMessage = latestMessage.content;
+    const historyText = history.slice(0, -1).map(m => `${m.role}: ${m.content}`).join('\n');
     
-    const { assistantMessage, frameSet, agent, reasons } = await orchestrator.orchestrate(contents);
+    const result = await route({ user: userMessage, history: historyText });
     
-    return json({ assistantMessage, replierInput: { frameSet, contextCount: history.length, agent, reasons } });
+    return json({ 
+      assistantMessage: result.text, 
+      replierInput: { 
+        frameSet: { frames: { persona: { value: result.picked, rationale: ['Router-based selection'] } } }, 
+        contextCount: history.length, 
+        agent: result.picked, 
+        reasons: 'Router-based agent selection' 
+      } 
+    });
   } catch (err) {
     const msg = String(err?.message || err || '').toLowerCase();
     if (msg.includes('gemini_api_key') || msg.includes('gemini') || msg.includes('api key')) {
