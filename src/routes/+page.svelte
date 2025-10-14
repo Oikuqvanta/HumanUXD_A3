@@ -7,9 +7,28 @@
   let replierInput = null; // { frameSet, contextCount, agent, reasons }
   let isLoading = false;
   let errorMsg = '';
-  
+  let isDarkMode = false;
 
-  onMount(() => {});
+  onMount(() => {
+    // Check for saved theme preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      isDarkMode = true;
+    }
+    updateTheme();
+  });
+
+  function toggleTheme() {
+    isDarkMode = !isDarkMode;
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    updateTheme();
+  }
+
+  function updateTheme() {
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+    }
+  }
 
   async function send() {
     const content = input.trim();
@@ -39,23 +58,36 @@
 
 <style>
   :global(:root) {
-    --bg: #0f172a;
-    --bg-grad-a: #0b1223;
-    --bg-grad-b: #111827;
+    --bg: #f3e8ff;
+    --bg-grad-a: #ede9fe;
+    --bg-grad-b: #e0e7ff;
     --card: #ffffff;
     --card-muted: #f8fafc;
     --border: #e5e7eb;
     --text: #0f172a;
     --muted: #64748b;
-    --primary: #2563eb;
-    --primary-600: #1d4ed8;
+    --primary: #8b5cf6;
+    --primary-600: #7c3aed;
+  }
+
+  :global([data-theme="dark"]) {
+    --bg: #0f172a;
+    --bg-grad-a: #0b1223;
+    --bg-grad-b: #111827;
+    --card: #1e293b;
+    --card-muted: #334155;
+    --border: #334155;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --primary: #8b5cf6;
+    --primary-600: #7c3aed;
   }
 
   :global(html, body) {
     height: 100%;
     margin: 0;
-    background: radial-gradient(1200px 600px at 20% -10%, rgba(37,99,235,0.25), transparent),
-                radial-gradient(900px 500px at 100% 0%, rgba(34,197,94,0.18), transparent),
+    background: radial-gradient(1200px 600px at 20% -10%, rgba(139,92,246,0.25), transparent),
+                radial-gradient(900px 500px at 100% 0%, rgba(168,85,247,0.18), transparent),
                 linear-gradient(180deg, var(--bg-grad-a), var(--bg-grad-b));
     color: var(--text);
     font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
@@ -87,6 +119,7 @@
   .meta { color: var(--muted); font-size: 0.8rem; margin-bottom: 0.15rem; }
 
   .toolbar { display: flex; gap: 1rem; align-items: center; justify-content: space-between; margin: 0.75rem 0; }
+  .toolbar-right { display: flex; gap: 0.5rem; align-items: center; }
 
   input[type="text"] {
     padding: 0.6rem 0.7rem; border-radius: 10px; border: 1px solid var(--border); background: var(--card);
@@ -98,6 +131,44 @@
   :global(button:hover) { background: var(--primary-600); }
   :global(button.secondary) { background: var(--card); color: var(--text); border-color: var(--border); }
   :global(button.secondary:hover) { background: var(--card-muted); }
+
+  .github-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.9rem;
+    background: var(--primary);
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 550;
+    transition: background-color .15s ease, transform .15s ease;
+  }
+  
+  .github-link:hover {
+    background: var(--primary-600);
+    transform: translateY(-1px);
+    text-decoration: none;
+  }
+
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.9rem;
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 550;
+    transition: background-color .15s ease, transform .15s ease;
+  }
+
+  .theme-toggle:hover {
+    background: var(--card-muted);
+    transform: translateY(-1px);
+  }
 
   .debug { background: var(--card); border: 1px dashed var(--border); padding: 0.75rem; margin-top: 0.75rem; border-radius: 10px; box-shadow: 0 2px 14px rgba(2,6,23,0.06);
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 0.85rem; }
@@ -125,10 +196,22 @@
 </style>
 
 <div class="container">
-  <h1>A3: Multi-agent Interaction </h1>
+  <h1 style="color: var(--text);">A3: Multi-agent Interaction </h1>
   <div class="subtle">Conversational demo</div>
   <div class="toolbar" style="margin: 0.5rem 0 0.75rem 0;">
     <button class="secondary" on:click={() => (debugOpen = !debugOpen)}>{debugOpen ? 'Hide' : 'Show'} Debug</button>
+    <div class="toolbar-right">
+      <button class="theme-toggle" on:click={toggleTheme}>
+        {#if isDarkMode}
+          <span>☀️</span> Light
+        {:else}
+          <span>🌙</span> Dark
+        {/if}
+      </button>
+      <a href="https://github.com/Oikuqvanta/HumanUXD_A3" target="_blank" rel="noopener noreferrer" class="github-link">
+        <span>📁</span> GitHub
+      </a>
+    </div>
   </div>
 
   {#if errorMsg}
