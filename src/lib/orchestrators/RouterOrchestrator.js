@@ -22,15 +22,17 @@ export async function route({ user, history }) {
   }
 
   // LLM triage if rules don't catch
-  const triage = await model("You classify user messages into playful|solemn|socratic").generateContent(
-    `User: ${user}\nPick exactly one label: playful, solemn, or socratic.`
+  const triage = await model("You classify user messages into playful|solemn|socratic and provide brief reasoning. Respond in format: LABEL: reasoning").generateContent(
+    `User: ${user}\nClassify as playful, solemn, or socratic and explain why in one sentence.`
   );
-  const label = triage.response.text().toLowerCase().includes("solemn")
+  
+  const response = triage.response.text().toLowerCase();
+  const label = response.includes("solemn")
     ? "solemn"
-    : triage.response.text().toLowerCase().includes("socratic")
+    : response.includes("socratic")
       ? "socratic" : "playful";
 
   const map = { playful, solemn, socratic };
-  const reasons = `LLM classified as ${label}`;
+  const reasons = triage.response.text().trim();
   return { picked: label, text: await map[label]({ user, history }), reasons };
 }
